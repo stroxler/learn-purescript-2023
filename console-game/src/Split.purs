@@ -75,6 +75,22 @@ runParser p = runExcept <<< runWriterT <<< runStateT p
 -- off one stack and push onto the other until we reach the "ground truth" level
 -- and can actually run all of the callbacks, so the resulting output stack is
 -- in the reverse order.
+--
+-- Another angle on this is that the transformer types and the actual
+-- ground-truth types represented in their run functions actually stack in the
+-- opposite direction. For example, consider:
+--   MaybeT m a = { runMaybeT :: m (Maybe a) }
+--   StateT s m a = { runStateT :: m (Tuple a S) }
+-- The monad itself, as concrete data, is nesting the opposite direction of
+-- the transformer generic type constructors. That's why, for example, a stack
+-- grounded in IO - whose generic type signature *ends* in IO - is in fact
+-- an IO once we invoke all of the *runXxxT* functions, which essentially
+-- wind up registering their duals as callbacks.
+--
+-- Also another note: the "ground truth" monad for a pure computation that is
+-- using monads simply as combinators is Identity. For effectful computations,
+-- on the other hand, the "ground truth" will be some IO-like monad (either
+-- Effect or Aff).
 
 split :: Parser String
 split = do
