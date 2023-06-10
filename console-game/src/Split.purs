@@ -16,6 +16,13 @@ type Errors = Array String
 
 type Log = Array String
 
+-- Note: the ExceptT component encodes an alternative whenever
+-- the left type is a monoid.
+--
+-- This fact is important for understanding:
+-- - how the guard works (it creates a `Left []`)
+-- - in addition, how we can access certain combinators such as
+--   many, some, and <|>
 type Parser = StateT String (WriterT Log (ExceptT Errors Identity))
 
 split :: Parser String
