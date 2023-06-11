@@ -101,6 +101,19 @@ runParser p = runExcept <<< runWriterT <<< runStateT p
 --
 -- the `do`, `<-`, and `pure` are all referring to `m`, which at runtime is
 -- the "outer" monad, and we're registering the Maybe bind logic as a callback.
+--
+-- Now let's consider lift for a moment. Why is it that we have to lift
+-- operations defined on the inner monad, and what's really going on here? Well,
+-- there's once again two ways to look at it:
+-- - At the type level, we lift in order to add nesting. That's clear
+-- - But at runtime, remember that the data types are actually flipped: the inner
+--   monad of a stack is actually the outermost one in the evaluation. When we
+--   "lift" an operation, we are lifting a *bare* value from that outermost monad
+--   so that it becomes a nested value with all the inner context. Remember, lift
+--   is actually just fmap: we're just mapping over the inner functors - for example
+--   in a `MaybeT IO a`, we lift an `IO a` action into the `MaybeT IO a` monad
+--   (which will produce an IO (Maybe a) at runtime) by fmapping that action over
+--   the Maybe context.
 -- 
 -- Also another note: the "ground truth" monad for a pure computation that is
 -- using monads simply as combinators is Identity. For effectful computations,
