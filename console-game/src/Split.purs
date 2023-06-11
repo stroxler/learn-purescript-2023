@@ -87,6 +87,21 @@ runParser p = runExcept <<< runWriterT <<< runStateT p
 -- an IO once we invoke all of the *runXxxT* functions, which essentially
 -- wind up registering their duals as callbacks.
 --
+-- If you look at the definition of the bind function for a monad transformer,
+-- by the way, any use of monadic combinators or notation always refers to the
+-- input type parameter `m` (which is an "inner" monad in the transformer stack,
+-- but actually an "outer" monad at runtime).
+--
+-- For example MaybeT:
+--    bind { runMaybeT } f = do
+--      x <- runMaybeT
+--      case x of
+--        Just something -> runMaybeT $ f something
+--        Nothing -> pure Nothing
+--
+-- the `do`, `<-`, and `pure` are all referring to `m`, which at runtime is
+-- the "outer" monad, and we're registering the Maybe bind logic as a callback.
+-- 
 -- Also another note: the "ground truth" monad for a pure computation that is
 -- using monads simply as combinators is Identity. For effectful computations,
 -- on the other hand, the "ground truth" will be some IO-like monad (either
