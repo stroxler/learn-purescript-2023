@@ -13,12 +13,13 @@ import Data.List as L
 import Data.Map as M
 import Data.Maybe (Maybe(..))
 import Data.Set as S
-import Effect.Exception (throwException)
 
 type Log = L.List String
 
 type Game = RWS GameEnvironment Log GameState
 
+
+-- Helper Game actions not directly exposed to the user
 
 message :: String -> Game Unit
 message = tell <<< L.singleton
@@ -78,3 +79,24 @@ use Matches = do
       , "You win!"
       ]
   else message "I don't know what to do with just matches."
+
+-- The actual game actions
+north :: Game Unit
+north = move 0 1
+
+south :: Game Unit
+south = move 0 (-1)
+
+east :: Game Unit
+east = move 1 0
+
+west :: Game Unit
+west = move (-1) 0
+
+-- Converting string commands into game actions
+gameCommand :: Array String -> Game Unit
+gameCommand ["north"] = north
+gameCommand ["south"] = south
+gameCommand ["east"] = east
+gameCommand ["west"] = west
+gameCommand _ = message "I don't understand that command"
