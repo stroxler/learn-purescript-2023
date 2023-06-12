@@ -3,16 +3,17 @@ module Game
 
 import Prelude
 
-import Control.Monad.RWS (RWS, get, modify_, put, tell)
+import Control.Monad.RWS (RWS, ask, get, modify_, put, tell)
 import Data.Coords (Coords(..))
 import Data.Coords as Coords
-import Data.GameEnvironment (GameEnvironment)
-import Data.GameItem (GameItem)
+import Data.GameEnvironment (GameEnvironment(..))
+import Data.GameItem (GameItem(..))
 import Data.GameState (GameState(..))
 import Data.List as L
 import Data.Map as M
 import Data.Maybe (Maybe(..))
 import Data.Set as S
+import Effect.Exception (throwException)
 
 type Log = L.List String
 
@@ -62,3 +63,18 @@ has :: GameItem -> Game Boolean
 has item = do
   GameState { inventory } <- get
   pure $ item `S.member` inventory
+
+
+use :: GameItem -> Game Unit
+use Candle = message "I don't know what to do with just a candle."
+use Matches = do
+  hasCandle <- has Candle
+  if hasCandle
+  then do
+    GameEnvironment env <- ask
+    tell $ L.fromFoldable
+      [ "You have lit the candle with the matches."
+      , "Congratulations, " <> show env
+      , "You win!"
+      ]
+  else message "I don't know what to do with just matches."
