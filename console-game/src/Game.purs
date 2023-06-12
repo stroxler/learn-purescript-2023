@@ -60,15 +60,15 @@ moveWithoutDo dx dy = modify_ $ updatePlayerPosition
     updatePlayerPosition (GameState oldState) =
       GameState oldState { playerPosition = Coords.withDelta oldState.playerPosition dx dy }
 
-has :: GameItem -> Game Boolean
-has item = do
+hasItem :: GameItem -> Game Boolean
+hasItem item = do
   GameState { inventory } <- get
   pure $ item `S.member` inventory
 
 
-use :: GameItem -> Game Unit
-use Candle = message "I don't know what to do with just a candle."
-use Matches = do
+useItem :: GameItem -> Game Unit
+useItem Candle = message "I don't know what to do with just a candle."
+useItem Matches = do
   hasCandle <- has Candle
   if hasCandle
   then do
@@ -92,6 +92,8 @@ east = move 1 0
 
 west :: Game Unit
 west = move (-1) 0
+
+
 
 -- Converting string commands into game actions
 gameCommand :: Array String -> Game Unit
