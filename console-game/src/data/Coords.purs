@@ -20,5 +20,8 @@ derive newtype instance Show Coords
 coords :: Int -> Int -> Coords
 coords x y = Coords { x, y }
 
+withDelta :: Coords -> Int -> Int -> Coords
+withDelta (Coords { x, y} ) dx dy = coords (x + dx) (y + dy)
+
 prettyPrintCoords :: Coords -> String
 prettyPrintCoords (Coords p) = "(" <> show p.x <> ", " <> show p.y <> ")"
