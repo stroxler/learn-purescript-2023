@@ -6,8 +6,9 @@ import Prelude
 import Control.Monad.RWS (RWS, ask, get, modify_, put, tell)
 import Data.Coords (Coords(..))
 import Data.Coords as Coords
+import Data.Foldable (for_)
 import Data.GameEnvironment (GameEnvironment(..))
-import Data.GameItem (GameItem(..))
+import Data.GameItem (GameItem(..), readItem)
 import Data.GameState (GameState(..))
 import Data.List as L
 import Data.Map as M
@@ -69,7 +70,7 @@ hasItem item = do
 useItem :: GameItem -> Game Unit
 useItem Candle = message "I don't know what to do with just a candle."
 useItem Matches = do
-  hasCandle <- has Candle
+  hasCandle <- hasItem Candle
   if hasCandle
   then do
     GameEnvironment env <- ask
@@ -93,6 +94,48 @@ east = move 1 0
 west :: Game Unit
 west = move (-1) 0
 
+look :: Game Unit
+look = do
+  GameState state <- get
+  message $ "You are at " <> Coords.prettyPrintCoords state.playerPosition
+  describePosition
+  -- (the for_ here is over the option foldable)
+  for_ (state.playerPosition `M.lookup` state.items) describeItems
+  pure unit
+    where
+    describeItems items =
+      tell (map (\item -> "You can see the " <> show item <> ".") itemsList)
+        where itemsList = (S.toUnfoldable items :: L.List GameItem)
+
+inventory :: Game Unit
+inventory = do
+  GameState state <- get
+  let inventoryList = (S.toUnfoldable state.inventory :: L.List GameItem)
+  tell (map (\item -> "You have the " <> show item <> ".") inventoryList)
+
+take :: String -> Game Unit
+take itemString = case readItem itemString of
+  Nothing -> message "I don't know what item you are referring to"
+  Just item -> pickUpItem item
+
+
+use :: String -> Game Unit
+use itemString = case readItem itemString of
+  Nothing -> message "I don't know what item you are referring to"
+  Just item -> do
+    has <- hasItem item
+    if has
+    then useItem item
+    else message "You don't have that item."
+
+debug :: Game Unit
+debug = do
+  GameEnvironment env <- ask
+  if env.debugMode
+  then do
+    state <- get
+    message (show state)
+  else message "Not running in debug mode"
 
 
 -- Converting string commands into game actions
@@ -101,4 +144,9 @@ gameCommand ["north"] = north
 gameCommand ["south"] = south
 gameCommand ["east"] = east
 gameCommand ["west"] = west
+gameCommand ["look"] = look
+gameCommand ["inventory"] = inventory
+gameCommand ["take", item] = take item
+gameCommand ["use", item] = use item
+gameCommand ["debug"] = debug
 gameCommand _ = message "I don't understand that command"
