@@ -57,3 +57,8 @@ moveWithoutDo dx dy = modify_ $ updatePlayerPosition
   where
     updatePlayerPosition (GameState oldState) =
       GameState oldState { playerPosition = Coords.withDelta oldState.playerPosition dx dy }
+
+has :: GameItem -> Game Boolean
+has item = do
+  GameState { inventory } <- get
+  pure $ item `S.member` inventory
