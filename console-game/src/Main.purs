@@ -2,11 +2,16 @@ module Main where
 
 import Prelude
 
+import Control.Monad.RWS (RWSResult(..), runRWS)
 import Data.Array (fold)
-import Data.GameEnvironment (GameEnvironment(..), gameEnvironment)
+import Data.Foldable (for_)
+import Data.GameEnvironment (GameEnvironment, gameEnvironment)
+import Data.GameState (GameState, initialGameState)
+import Data.Newtype (wrap)
+import Data.String (split)
 import Effect (Effect)
-import Effect.Class.Console (logShow)
 import Effect.Console (log)
+import Game (gameCommand)
 import Node.ReadLine as RL
 import Options.Applicative ((<**>))
 import Options.Applicative as OP
@@ -41,13 +46,27 @@ getGameEnvironment = OP.customExecParser prefs argParser
       , OP.help "Use debug mode"
       ]
 
+gameLineHandler :: RL.Interface -> GameEnvironment -> GameState -> String -> Effect Unit
+gameLineHandler interface environment initialState =
+  lineHandler initialState
+  where
+    lineHandler currentState input =
+      do
+        case runRWS (gameCommand $ split (wrap " ") input) environment currentState of
+          RWSResult newState _ written -> do
+            for_ written log
+            RL.setLineHandler (lineHandler newState) $ interface
+        RL.prompt interface
+        pure unit
+  
+
 main :: Effect Unit
 main = do
   environment <- getGameEnvironment
-  log "Here is the game environment..."
-  logShow environment
-  log "And here is a dummy readline interface"
   interface <- RL.createConsoleInterface RL.noCompletion
   RL.setPrompt "adventure-game> " interface
+  let
+    lineHandler = gameLineHandler interface environment initialGameState
+  RL.setLineHandler lineHandler interface
   RL.prompt interface
 
