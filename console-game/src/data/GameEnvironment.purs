@@ -1,5 +1,7 @@
 module Data.GameEnvironment where
 
+import Prelude
+
 
 newtype GameEnvironment = GameEnvironment
   { playerName :: String
@@ -8,3 +10,5 @@ newtype GameEnvironment = GameEnvironment
 
 gameEnvironment :: String -> Boolean -> GameEnvironment
 gameEnvironment playerName debugMode = GameEnvironment { playerName, debugMode }
+
+derive newtype instance Show GameEnvironment
