@@ -13,6 +13,7 @@
   , "node-readline"
   , "ordered-collections"
   , "prelude"
+  , "debug"
   , "strings"
   , "transformers"
   , "tuples"
