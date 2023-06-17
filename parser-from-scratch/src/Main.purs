@@ -9,7 +9,6 @@ import Control.Monad.State (StateT, get, put, runStateT)
 import Data.Either (Either)
 import Data.Identity (Identity)
 import Data.String as S
-import Data.Tuple (Tuple(..))
 import Debug (trace)
 import Effect (Effect)
 import Effect.Class.Console (logShow)
@@ -89,7 +88,7 @@ parseHelloWorld = createHelloWorld <$> parseHello <*> matches ", " <*> parseWorl
     createHelloWorld hello _ world = HelloWorld { hello, world }
     parseHello = matches "hello" <|> matches "Hello" <|> matches "HELLO"
     parseWorld = matches "world" <|> matches "World" <|> matches "WORLD"
-
+    _ = S.take
 
 main :: Effect Unit
 main = do
