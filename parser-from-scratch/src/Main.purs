@@ -14,6 +14,8 @@ import Effect (Effect)
 import Effect.Class.Console (logShow)
 
 
+-- *** PARSER CODE ***
+
 type Error = String
 
 type ParserState =
@@ -46,8 +48,18 @@ consumeN n = do
         pure $ S.take n state.content
     else throwError "Unexpected end of input"
 
-consume :: Parser String
-consume = consumeN 1
+consume1 :: Parser String
+consume1 = consumeN 1
+
+predicateN :: Int -> (String -> Boolean) -> Parser String
+predicateN n pred = do
+  head <- consumeN n
+  if pred head
+  then pure head
+  else throwError $ "Head '" <> show head <> "' does not pass `pred`"
+
+predicate1 :: (String -> Boolean) -> Parser String
+predicate1 = predicateN 1
 
 
 getRemainingContent :: Parser String
@@ -55,21 +67,17 @@ getRemainingContent = remainingContent <$> get
     where remainingContent state = S.drop state.location state.content
 
 
-string :: String -> Parser String
-string match = do
-    maybeMatches <- consumeN (S.length match)
-    let _ = trace ("maybeMatches: " <> show maybeMatches) \_ -> unit
-    if (match == maybeMatches)
-    then pure match
-    else throwError $ "No match for " <> show match
+matches :: String -> Parser String
+matches match = predicateN (S.length match) (_ == match)
 
 
 
 runParser :: forall a. ParserState -> Parser a -> Either Error (Tuple a ParserState)
 runParser initialState parser = runExcept $ runStateT parser initialState
 
+-- *** A SMALL LANGUAGE ***
 
 main :: Effect Unit
 main =
-    let result = runParser (createInitialState "hello, world") (string "hello")
+    let result = runParser (createInitialState "hello, world") (matches "hello")
     in logShow result
