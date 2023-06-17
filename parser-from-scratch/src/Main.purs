@@ -9,6 +9,7 @@ import Control.Monad.State (StateT, get, put, runStateT)
 import Data.Either (Either)
 import Data.Identity (Identity)
 import Data.String as S
+import Data.Tuple (Tuple)
 import Debug (trace)
 import Effect (Effect)
 import Effect.Class.Console (logShow)
