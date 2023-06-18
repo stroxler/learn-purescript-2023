@@ -1,28 +1,16 @@
 module Main
-  ( Json(..)
-  , parseCharacter
-  , parseRawNull
-  , parseString
-  , parseSymbol
-  )
   where
 
-import Parser
+import Parser (Parser, consume1, createInitialState, many, matches, runParser)
 import Prelude
 
-import Control.Alt ((<|>))
-import Control.Monad.Except (ExceptT, runExcept, throwError)
-import Control.Monad.State (StateT, get, put, runStateT)
-import Data.Either (Either)
+import Control.Monad.Except (throwError)
 import Data.Foldable (fold)
 import Data.Generic.Rep (class Generic)
-import Data.Identity (Identity)
 import Data.Show.Generic (genericShow)
-import Data.String as S
 import Data.Tuple (Tuple)
-import Debug (trace)
 import Effect (Effect)
-import Effect.Class.Console (log, logShow)
+import Effect.Class.Console (logShow)
 
 
 data JNode a
@@ -59,7 +47,9 @@ parseCharacter = do
     "\"" -> throwError "End of string"
     "\\" -> do
       nextChar <- consume1
-      pure nextChar
+      case nextChar of
+        "n" -> pure "\n"
+        _ -> pure nextChar
     _ -> pure char
 
 
@@ -74,4 +64,4 @@ parseString = parseQuote *> parseStringMiddle <* parseQuote
 
 main :: Effect Unit
 main = do
-    log "hello, world"
+    logShow $ runParser (createInitialState "\"this is a\\ string!\\\"\\\\\\n\" and this is the rest") parseString
