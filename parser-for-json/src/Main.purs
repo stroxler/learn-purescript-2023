@@ -9,7 +9,6 @@ import Data.Foldable (fold)
 import Data.Generic.Rep (class Generic)
 import Data.List (List)
 import Data.Maybe (Maybe(..))
-import Data.Number as Math
 import Data.Number as Number
 import Data.Show.Generic (genericShow)
 import Data.Tuple (Tuple)
@@ -91,7 +90,13 @@ parseJNumber = JNumber <$> parseInteger
     parseWithNegation parseNumeric = parseNumeric <|> parseNegated parseNumeric
     parseNegated parseNumeric = (\n -> -n) <$> (matches "-" *> parseNumeric)
 
-      
+
+parseJNull :: Parser Json
+parseJNull = matches "null" *> pure JNull
+
+
+parseJBoolean :: Parser Json
+parseJBoolean = (\raw -> JBoolean $ raw == "true") <$> (matches "true" <|> matches "false")
 
 
 main :: Effect Unit
@@ -99,3 +104,6 @@ main = do
     logShow $ runParser (createInitialState "\"this is a\\ string!\\\"\\\\\\n\" and this is the rest") parseJString
     logShow $ runParser (createInitialState "-178 and some more") parseJNumber
     logShow $ runParser (createInitialState "087 and some more") parseJNumber
+    logShow $ runParser (createInitialState "null and some more") parseJNull
+    logShow $ runParser (createInitialState "true and some more") parseJBoolean
+    logShow $ runParser (createInitialState "false and some more") parseJBoolean
