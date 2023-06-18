@@ -12,6 +12,7 @@
   , "maybe"
   , "newtype"
   , "node-readline"
+  , "numbers"
   , "ordered-collections"
   , "prelude"
   , "strings"
