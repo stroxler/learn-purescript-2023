@@ -3,6 +3,7 @@
   [ "arrays"
   , "console"
   , "control"
+  , "debug"
   , "effect"
   , "either"
   , "foldable-traversable"
@@ -13,8 +14,8 @@
   , "node-readline"
   , "ordered-collections"
   , "prelude"
-  , "debug"
   , "strings"
+  , "tailrec"
   , "transformers"
   , "tuples"
   ]
