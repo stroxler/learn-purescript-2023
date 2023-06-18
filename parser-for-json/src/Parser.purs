@@ -1,13 +1,17 @@
-module Parser where
+module Parser
+  where
 
 import Prelude
 
 import Control.Alt ((<|>))
+import Control.Lazy (class Lazy)
 import Control.Monad.Except (ExceptT, runExcept, throwError)
 import Control.Monad.Rec.Class (untilJust)
 import Control.Monad.State (StateT, get, put, runStateT)
 import Data.Either (Either)
+import Data.Function.Uncurried (mkFn1)
 import Data.Identity (Identity)
+import Data.Lazy as Lazy
 import Data.List (List(..))
 import Data.String as S
 import Data.Traversable (sequence)
@@ -35,6 +39,15 @@ createInitialState content = { content, location: 0 }
 -- the inside.
 type Parser = (StateT ParserState (ExceptT Error Identity)) 
 
+instance Lazy (Parser a) where
+  defer f =
+    let f' = Lazy.defer f
+    Parser
+      ( mkFn1 \state -> do
+          let (Parser k1) = Lazy.force f'
+          runFn1 k1 state1
+      )
+      where
 
 fail :: forall a . String -> Parser a
 fail message = do

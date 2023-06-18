@@ -73,7 +73,9 @@ parseCharacter = do
 -- cannot evaluate a forward reference at the top-level (this is unlike in Haskell,
 -- where laziness + compiled code makes this possible).
 parseJson :: Unit -> Parser Json
-parseJson _ = parseJNull <|> parseJBoolean <|> parseJNumber <|> parseJString <|> (parseJArray unit)
+parseJson _ = do
+  parsed <- parseJNull <|> parseJBoolean <|> parseJNumber <|> parseJString <|> parseJArray
+  pure parsed
 
 
 parseJString :: Parser Json
