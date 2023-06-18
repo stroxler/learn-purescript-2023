@@ -13,23 +13,22 @@ import Effect (Effect)
 import Effect.Class.Console (logShow)
 
 
-data JNode a
+data Json
   = JNull
   | JNumber Number
   | JBoolean Boolean
   | JString String
-  | JArray (Array a)
-  | JAssoc (Array (Tuple String a))
+  | JArray (Array Json)
+  | JAssoc (Array (Tuple String Json))
 
 
+derive instance genericJNode ∷ Generic Json _
 
-derive instance genericJNode ∷ Generic (JNode a) _
+instance showJson :: Show Json where
+  -- making the j argument explicit is required here
+  -- see https://github.com/purescript/purescript/issues/2975
+  show j = genericShow j
 
-instance showJNode :: Show a => Show (JNode a) where
-  show = genericShow
-
-
-newtype Json = JNode Json
 
 
 parseSymbol :: String -> Parser Unit
@@ -53,15 +52,15 @@ parseCharacter = do
     _ -> pure char
 
 
-parseString :: Parser String
-parseString = parseQuote *> parseStringMiddle <* parseQuote
+parseJString :: Parser Json
+parseJString = parseQuote *> parseContent <* parseQuote
   where
     parseQuote = parseSymbol "\""
-    parseStringMiddle = do
+    parseContent = do
       characters <- many parseCharacter
-      pure $ fold characters
+      pure $ JString $ fold characters
 
 
 main :: Effect Unit
 main = do
-    logShow $ runParser (createInitialState "\"this is a\\ string!\\\"\\\\\\n\" and this is the rest") parseString
+    logShow $ runParser (createInitialState "\"this is a\\ string!\\\"\\\\\\n\" and this is the rest") parseJString
